@@ -1,5 +1,13 @@
 // src/device-list.tsx
-import { List, ActionPanel, Action, Icon, showToast, Toast, closeMainWindow } from "@raycast/api";
+import {
+  List,
+  ActionPanel,
+  Action,
+  Icon,
+  showToast,
+  Toast,
+  closeMainWindow,
+} from "@raycast/api";
 import { useState, useEffect } from "react";
 import { Device, DeviceType, getDevices, setDevice } from "./audio";
 
@@ -40,7 +48,10 @@ export default function DeviceList(props: { type: DeviceType }) {
     }
     try {
       await setDevice(type, device.id);
-      await showToast({ style: Toast.Style.Success, title: `Now using: ${device.name}` });
+      await showToast({
+        style: Toast.Style.Success,
+        title: `Now using: ${device.name}`,
+      });
       await closeMainWindow();
     } catch (error) {
       await showToast({
@@ -52,7 +63,10 @@ export default function DeviceList(props: { type: DeviceType }) {
   }
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder={`Switch ${NOUN[type].toLowerCase()}…`}>
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder={`Switch ${NOUN[type].toLowerCase()}…`}
+    >
       {devices.map((device) => (
         <List.Item
           key={device.id}
@@ -61,7 +75,10 @@ export default function DeviceList(props: { type: DeviceType }) {
           accessories={device.isCurrent ? [{ tag: "Current" }] : []}
           actions={
             <ActionPanel>
-              <Action title={`Switch to ${device.name}`} onAction={() => select(device)} />
+              <Action
+                title={`Switch to ${device.name}`}
+                onAction={() => select(device)}
+              />
             </ActionPanel>
           }
         />

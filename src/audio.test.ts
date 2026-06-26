@@ -39,13 +39,18 @@ describe("getDevices", () => {
     mock.getOutputDevices.mockResolvedValue([
       { id: 5, name: "Studio Display", isInput: false, isOutput: true },
     ]);
-    mock.getDefaultOutputDevice.mockResolvedValue({ id: 5, name: "Studio Display" });
+    mock.getDefaultOutputDevice.mockResolvedValue({
+      id: 5,
+      name: "Studio Display",
+    });
 
     const devices = await getDevices("output");
 
     expect(mock.getOutputDevices).toHaveBeenCalledOnce();
     expect(mock.getInputDevices).not.toHaveBeenCalled();
-    expect(devices).toEqual([{ id: 5, name: "Studio Display", isCurrent: true }]);
+    expect(devices).toEqual([
+      { id: 5, name: "Studio Display", isCurrent: true },
+    ]);
   });
 
   it("propagates errors from the underlying package", async () => {
@@ -62,14 +67,19 @@ describe("getCurrent", () => {
   });
 
   it("routes to output package function for output type", async () => {
-    mock.getDefaultOutputDevice.mockResolvedValue({ id: 5, name: "Studio Display" });
+    mock.getDefaultOutputDevice.mockResolvedValue({
+      id: 5,
+      name: "Studio Display",
+    });
     const current = await getCurrent("output");
     expect(current).toEqual({ id: 5, name: "Studio Display", isCurrent: true });
     expect(mock.getDefaultInputDevice).not.toHaveBeenCalled();
   });
 
   it("propagates errors from the underlying package", async () => {
-    mock.getDefaultInputDevice.mockRejectedValue(new Error("no default device"));
+    mock.getDefaultInputDevice.mockRejectedValue(
+      new Error("no default device"),
+    );
     await expect(getCurrent("input")).rejects.toThrow("no default device");
   });
 });
