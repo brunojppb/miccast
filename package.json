@@ -1,0 +1,32 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "miccast",
+  "title": "miccast",
+  "description": "Quickly switch the active microphone input and audio output device.",
+  "icon": "icon.png",
+  "author": "bpaulino",
+  "license": "MIT",
+  "commands": [],
+  "dependencies": {
+    "@raycast/api": "^1.79.0",
+    "@raycast/utils": "^1.17.0",
+    "macos-audio-devices": "^1.0.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "react": "^18.3.1",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "fix-lint": "ray lint --fix",
+    "test": "vitest run"
+  }
+}
