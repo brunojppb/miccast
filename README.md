@@ -64,6 +64,39 @@ them in Raycast → Settings → Extensions.
 To update later: `git pull`, then `npm install && npm run dev` once more.
 To remove it: find it under Raycast → Settings → Extensions and remove it.
 
+## Releasing
+
+Releases are cut by a manual GitHub Actions workflow
+(`.github/workflows/release.yml`) — no local steps required:
+
+1. Go to the repo's **Actions** tab → **Release** → **Run workflow**.
+2. Choose a bump: **patch**, **minor**, or **major**.
+3. The workflow then, on a macOS runner:
+   - computes the next `vX.Y.Z` from the latest git tag;
+   - generates release notes from the commit messages since the last tag;
+   - stamps that section into `CHANGELOG.md` and commits it as `release: vX.Y.Z`;
+   - creates and pushes the `vX.Y.Z` git tag;
+   - builds the extension (`ray build`, binary + icons included) and zips it;
+   - publishes a **GitHub Release** with the notes and the
+     `miccast-vX.Y.Z.zip` bundle attached.
+
+The first run has no previous tag, so `patch` → `v0.0.1`, `minor` → `v0.1.0`,
+`major` → `v1.0.0`. The zipped bundle is a versioned snapshot/archive — end
+users install Raycast extensions from the store, not from the zip.
+
+## Publishing to the Raycast Store
+
+The manifest is store-ready (passes `ray lint`). To submit:
+
+```bash
+npm run build     # distribution verification (publishes nothing)
+npm run publish   # opens a PR to raycast/extensions on your behalf
+```
+
+The Raycast team reviews the PR; on merge it goes live in the store. Add
+screenshots (3–6, 2000×1250 PNG) before submitting — see
+[Prepare an Extension for Store](https://developers.raycast.com/basics/prepare-an-extension-for-store).
+
 ## How it works
 
 ```
