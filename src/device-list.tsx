@@ -39,6 +39,7 @@ export default function DeviceList(props: { type: DeviceType }) {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function select(device: Device) {
@@ -48,6 +49,7 @@ export default function DeviceList(props: { type: DeviceType }) {
     }
     try {
       await setDevice(type, device.id);
+      setDevices((prev) => prev.map((d) => ({ ...d, isCurrent: d.id === device.id })));
       await showToast({
         style: Toast.Style.Success,
         title: `Now using: ${device.name}`,
@@ -76,7 +78,7 @@ export default function DeviceList(props: { type: DeviceType }) {
           actions={
             <ActionPanel>
               <Action
-                title={`Switch to ${device.name}`}
+                title={device.isCurrent ? `${device.name} (Current)` : `Switch to ${device.name}`}
                 onAction={() => select(device)}
               />
             </ActionPanel>

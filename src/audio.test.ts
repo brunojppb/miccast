@@ -57,6 +57,20 @@ describe("getDevices", () => {
     mock.getInputDevices.mockRejectedValue(new Error("hardware unavailable"));
     await expect(getDevices("input")).rejects.toThrow("hardware unavailable");
   });
+
+  it("a dual-role device appears in both lists with independent isCurrent", async () => {
+    const dual = { id: 7, name: "USB Interface", isInput: true, isOutput: true };
+    mock.getInputDevices.mockResolvedValue([dual]);
+    mock.getDefaultInputDevice.mockResolvedValue({ id: 7, name: "USB Interface" });
+    mock.getOutputDevices.mockResolvedValue([dual]);
+    mock.getDefaultOutputDevice.mockResolvedValue({ id: 3, name: "MacBook Speakers" });
+
+    const inputs = await getDevices("input");
+    const outputs = await getDevices("output");
+
+    expect(inputs[0].isCurrent).toBe(true);
+    expect(outputs[0].isCurrent).toBe(false);
+  });
 });
 
 describe("getCurrent", () => {
