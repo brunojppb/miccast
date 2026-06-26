@@ -4,7 +4,9 @@
   "title": "Miccast",
   "description": "Quickly switch the active microphone input and audio output device.",
   "icon": "icon.png",
-  "author": "bpaulino",
+  "author": "brunojppb",
+  "categories": ["System"],
+  "platforms": ["macOS"],
   "license": "MIT",
   "commands": [
     {

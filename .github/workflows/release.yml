@@ -1,0 +1,138 @@
+name: Release
+
+# Manually triggered from the Actions tab. Pick a bump type; the workflow
+# computes the next version from the latest git tag, stamps the CHANGELOG,
+# commits + tags it, builds the extension (binary + icons included), and
+# publishes a GitHub Release with a zipped bundle attached.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Semver bump"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+# Needed to push the release commit/tag and create the GitHub Release.
+permissions:
+  contents: write
+
+# Never run two releases at once.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # macOS is required: the `macos-audio-devices` dependency compiles a Swift
+    # binary in its postinstall, which only works on macOS.
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags, for version + changelog
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build (verify before releasing)
+        run: npm run build
+
+      - name: Compute next version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          PREV="$(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)"
+          echo "Previous tag: $PREV"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${PREV#v}"
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          TAG="v${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "prev=${PREV}" >> "$GITHUB_OUTPUT"
+          echo "Releasing ${TAG}"
+
+      - name: Generate release notes from commits
+        id: notes
+        env:
+          PREV: ${{ steps.version.outputs.prev }}
+        run: |
+          if git rev-parse "$PREV" >/dev/null 2>&1; then
+            RANGE="${PREV}..HEAD"
+          else
+            RANGE="HEAD" # first release: include all history
+          fi
+          # Commit subjects since the last tag, excluding merges and prior
+          # release commits.
+          NOTES="$(git log "$RANGE" --no-merges --pretty='- %s' | grep -viE '^- release: v' || true)"
+          if [ -z "$NOTES" ]; then
+            NOTES="- Maintenance release"
+          fi
+          printf '%s\n' "$NOTES" > release-notes.md
+          echo "Release notes:"
+          cat release-notes.md
+
+      - name: Stamp CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          DATE="$(date +%Y-%m-%d)" VERSION="$VERSION" node -e '
+            const fs = require("fs");
+            const notes = fs.readFileSync("release-notes.md", "utf8").trimEnd();
+            const entry = `## [${process.env.VERSION}] - ${process.env.DATE}\n\n${notes}\n`;
+            const anchor = "<!-- new-release-anchor -->";
+            const changelog = fs.readFileSync("CHANGELOG.md", "utf8");
+            fs.writeFileSync(
+              "CHANGELOG.md",
+              changelog.replace(anchor, `${anchor}\n\n${entry}`),
+            );
+          '
+
+      - name: Commit, tag, and push
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name "Bruno Paulino"
+          git config user.email "code@bpaulino.com"
+          git add CHANGELOG.md
+          git commit -m "release: ${TAG}"
+          git tag "$TAG"
+          git push origin HEAD:main
+          git push origin "$TAG"
+
+      - name: Package extension bundle
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          npx ray build -e dist -o ./build -I --exit-on-error
+          (cd build && zip -r "../miccast-${TAG}.zip" .)
+          ls -la "miccast-${TAG}.zip"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            "miccast-${TAG}.zip" \
+            --title "$TAG" \
+            --notes-file release-notes.md
