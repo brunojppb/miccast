@@ -36,6 +36,15 @@ jobs:
         with:
           fetch-depth: 0 # full history + tags, for version + changelog
 
+      # workflow_dispatch checks out the commit that existed when the run was
+      # triggered. If main advanced since, that checkout is stale and the
+      # release push would be rejected as non-fast-forward. Always release the
+      # current tip of main instead.
+      - name: Sync to latest main
+        run: |
+          git fetch origin main
+          git checkout -B main origin/main
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -116,7 +125,13 @@ jobs:
           git add CHANGELOG.md
           git commit -m "release: ${TAG}"
           git tag "$TAG"
-          git push origin HEAD:main
+          # Fast-forward in the normal case; if someone pushed during the run,
+          # rebase the release commit onto the new tip and retry once.
+          git push origin HEAD:main || {
+            echo "Push rejected — rebasing onto latest main and retrying."
+            git pull --rebase origin main
+            git push origin HEAD:main
+          }
           git push origin "$TAG"
 
       - name: Package extension bundle
