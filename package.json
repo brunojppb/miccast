@@ -27,19 +27,22 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.79.0",
-    "@raycast/utils": "^1.17.0",
-    "macos-audio-devices": "^1.0.0"
+    "@raycast/api": "1.104.20",
+    "@raycast/utils": "1.19.1",
+    "macos-audio-devices": "1.4.0"
   },
   "devDependencies": {
-    "@raycast/eslint-config": "^1.0.11",
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.2.17",
-    "eslint": "^8.57.0",
-    "prettier": "^3.3.3",
-    "react": "^19.2.7",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
+    "@raycast/eslint-config": "1.0.11",
+    "@types/node": "24.13.2",
+    "@types/react": "19.2.17",
+    "eslint": "8.57.1",
+    "prettier": "3.8.4",
+    "react": "19.2.7",
+    "typescript": "5.9.3",
+    "vitest": "2.1.9"
+  },
+  "engines": {
+    "node": ">=24"
   },
   "scripts": {
     "build": "ray build -e dist",
