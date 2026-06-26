@@ -47,6 +47,11 @@ describe("getDevices", () => {
     expect(mock.getInputDevices).not.toHaveBeenCalled();
     expect(devices).toEqual([{ id: 5, name: "Studio Display", isCurrent: true }]);
   });
+
+  it("propagates errors from the underlying package", async () => {
+    mock.getInputDevices.mockRejectedValue(new Error("hardware unavailable"));
+    await expect(getDevices("input")).rejects.toThrow("hardware unavailable");
+  });
 });
 
 describe("getCurrent", () => {
@@ -54,6 +59,18 @@ describe("getCurrent", () => {
     mock.getDefaultInputDevice.mockResolvedValue({ id: 2, name: "Shure MV7" });
     const current = await getCurrent("input");
     expect(current).toEqual({ id: 2, name: "Shure MV7", isCurrent: true });
+  });
+
+  it("routes to output package function for output type", async () => {
+    mock.getDefaultOutputDevice.mockResolvedValue({ id: 5, name: "Studio Display" });
+    const current = await getCurrent("output");
+    expect(current).toEqual({ id: 5, name: "Studio Display", isCurrent: true });
+    expect(mock.getDefaultInputDevice).not.toHaveBeenCalled();
+  });
+
+  it("propagates errors from the underlying package", async () => {
+    mock.getDefaultInputDevice.mockRejectedValue(new Error("no default device"));
+    await expect(getCurrent("input")).rejects.toThrow("no default device");
   });
 });
 
