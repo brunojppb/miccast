@@ -6,7 +6,7 @@ curated; subsequent entries are appended automatically by the release workflow
 
 <!-- new-release-anchor -->
 
-## [Initial Release] - {PR_MERGE_DATE}
+## [Initial Release]
 
 - **Set Input Device** — switch the active microphone from a searchable list;
   the current device is marked so you always see what's selected.
