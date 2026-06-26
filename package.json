@@ -12,6 +12,7 @@
       "title": "Set Input Device",
       "subtitle": "miccast",
       "description": "Switch the active microphone input device.",
+      "icon": "microphone.png",
       "mode": "view"
     },
     {
@@ -19,6 +20,7 @@
       "title": "Set Output Device",
       "subtitle": "miccast",
       "description": "Switch the active speaker/headphone output device.",
+      "icon": "speaker.png",
       "mode": "view"
     }
   ],

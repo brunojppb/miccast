@@ -4,6 +4,7 @@ import {
   ActionPanel,
   Action,
   Icon,
+  Color,
   showToast,
   Toast,
   closeMainWindow,
@@ -14,6 +15,11 @@ import { Device, DeviceType, getDevices, setDevice } from "./audio";
 const NOUN: Record<DeviceType, string> = {
   input: "Input Device",
   output: "Output Device",
+};
+
+const TYPE_ICON: Record<DeviceType, Icon> = {
+  input: Icon.Microphone,
+  output: Icon.SpeakerHigh,
 };
 
 export default function DeviceList(props: { type: DeviceType }) {
@@ -37,9 +43,9 @@ export default function DeviceList(props: { type: DeviceType }) {
     }
   }
 
+  // Load once on mount; `type` is fixed for a command's lifetime.
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function select(device: Device) {
@@ -49,7 +55,9 @@ export default function DeviceList(props: { type: DeviceType }) {
     }
     try {
       await setDevice(type, device.id);
-      setDevices((prev) => prev.map((d) => ({ ...d, isCurrent: d.id === device.id })));
+      setDevices((prev) =>
+        prev.map((d) => ({ ...d, isCurrent: d.id === device.id })),
+      );
       await showToast({
         style: Toast.Style.Success,
         title: `Now using: ${device.name}`,
@@ -73,12 +81,25 @@ export default function DeviceList(props: { type: DeviceType }) {
         <List.Item
           key={device.id}
           title={device.name}
-          icon={device.isCurrent ? Icon.CheckCircle : Icon.Circle}
-          accessories={device.isCurrent ? [{ tag: "Current" }] : []}
+          icon={TYPE_ICON[type]}
+          accessories={
+            device.isCurrent
+              ? [
+                  {
+                    icon: { source: Icon.CheckCircle, tintColor: Color.Green },
+                    tag: "Current",
+                  },
+                ]
+              : []
+          }
           actions={
             <ActionPanel>
               <Action
-                title={device.isCurrent ? `${device.name} (Current)` : `Switch to ${device.name}`}
+                title={
+                  device.isCurrent
+                    ? `${device.name} (Current)`
+                    : `Switch to ${device.name}`
+                }
                 onAction={() => select(device)}
               />
             </ActionPanel>
